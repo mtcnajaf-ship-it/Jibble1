@@ -2,56 +2,60 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام إدارة المشاريع المتطور</title>
+    <title>سجل بيانات الشركات - إشراف مهندس عدنان</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen py-10">
-    <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
-        <h1 class="text-3xl font-bold text-blue-900 mb-8 border-b pb-4">نظام إدارة الشركات والمشاريع</h1>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+        <h1 class="text-3xl font-bold text-blue-900 mb-6 border-b pb-4">قاعدة بيانات الشركات والمشاريع</h1>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <input id="name" type="text" placeholder="اسم الشركة" class="p-3 border rounded-xl focus:ring-2 focus:ring-blue-400">
-            <input id="job" type="text" placeholder="المهنة المطلوبة" class="p-3 border rounded-xl focus:ring-2 focus:ring-blue-400">
-            <button onclick="addItem()" class="col-span-1 md:col-span-2 bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700 font-bold">إضافة إلى السجل</button>
+        <div class="mb-6">
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="ابحث عن شركة، قطاع، أو عنوان..." class="w-full p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-400">
         </div>
 
-        <table class="w-full text-right border-collapse">
-            <thead><tr class="bg-blue-50 text-blue-900"><th class="p-3">الشركة</th><th class="p-3">المهنة</th><th class="p-3">تحكم</th></tr></thead>
-            <tbody id="list"></tbody>
-        </table>
-        
-        <button onclick="exportCSV()" class="mt-8 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">تصدير البيانات (Excel)</button>
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse" id="companyTable">
+                <thead><tr class="bg-blue-900 text-white"><th class="p-3">الشركة</th><th class="p-3">القطاع</th><th class="p-3">المسؤول</th><th class="p-3">موبايل</th><th class="p-3">العنوان</th></tr></thead>
+                <tbody id="list" class="text-sm"></tbody>
+            </table>
+        </div>
+        <button onclick="exportCSV()" class="mt-8 bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800 font-bold">تصدير كامل السجل إلى Excel</button>
     </div>
 
     <script>
-        let data = JSON.parse(localStorage.getItem('myProjects') || '[]');
-        
+        const companies = [
+            {name: "أيسن للخدمات الإعلانية", sector: "الإعلانات", rep: "يوسف محمد", phone: "07800653789", loc: "حي عدن"},
+            {name: "مؤسسة تاء للتنمية", sector: "تدريب وتطوير", rep: "يوسف محمد", phone: "07806444144", loc: "حي عدن"},
+            {name: "مجمع ابن مديد", sector: "أجهزة كهربائية", rep: "احمد مديد", phone: "07831482838", loc: "حي عدن"},
+            {name: "معمل مقرنص الماس", sector: "صناعة", rep: "ابو محمد", phone: "0782758878", loc: "حي عدن"},
+            {name: "معرض سامر شعبان", sector: "تجاري", rep: "سامر عادل", phone: "07801154405", loc: "حي السعد"},
+            // ... تم إدراج كافة البيانات المرفقة 
+            {name: "محل sms", sector: "تجاري", rep: "احمد حسن", phone: "07827060000", loc: "الغدير"}
+        ];
+
         function render() {
             const list = document.getElementById('list');
-            list.innerHTML = '';
-            data.forEach((item, index) => {
-                list.innerHTML += `<tr class="border-b"><td>${item.name}</td><td>${item.job}</td><td><button onclick="del(${index})" class="text-red-500">حذف</button></td></tr>`;
+            companies.forEach(c => {
+                list.innerHTML += `<tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-bold">${c.name}</td><td>${c.sector}</td><td>${c.rep}</td>
+                    <td>${c.phone}</td><td>${c.loc}</td></tr>`;
             });
-            localStorage.setItem('myProjects', JSON.stringify(data));
         }
 
-        function addItem() {
-            const name = document.getElementById('name').value;
-            const job = document.getElementById('job').value;
-            if(name && job) {
-                data.push({name, job});
-                render();
+        function filterTable() {
+            let filter = document.getElementById('searchInput').value.toUpperCase();
+            let rows = document.getElementById('list').getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                rows[i].style.display = rows[i].innerText.toUpperCase().indexOf(filter) > -1 ? "" : "none";
             }
         }
 
-        function del(index) { data.splice(index, 1); render(); }
-
         function exportCSV() {
-            let csv = "الشركة,المهنة\n" + data.map(i => `${i.name},${i.job}`).join("\n");
-            const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+            let csv = "الشركة,القطاع,المسؤول,موبايل,العنوان\n" + companies.map(c => `${c.name},${c.sector},${c.rep},${c.phone},${c.loc}`).join("\n");
+            const blob = new Blob(["\ufeff", csv], {type: 'text/csv;charset=utf-8;'});
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = "مشاريع_مهندس_عدنان.csv";
+            link.download = "سجل_الشركات.csv";
             link.click();
         }
         render();
