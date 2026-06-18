@@ -2,33 +2,59 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المشاريع - مهندس عدنان</title>
+    <title>نظام إدارة المشاريع المتطور</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-4">
-    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold text-center mb-6 text-blue-900">نظام إدارة الشركات</h1>
-        <div class="space-y-4">
-            <input id="name" type="text" placeholder="اسم الشركة" class="w-full p-2 border rounded">
-            <input id="job" type="text" placeholder="المهنة المطلوبة" class="w-full p-2 border rounded">
-            <button onclick="addItem()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">إضافة إلى القائمة</button>
+<body class="bg-gray-50 min-h-screen py-10">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
+        <h1 class="text-3xl font-bold text-blue-900 mb-8 border-b pb-4">نظام إدارة الشركات والمشاريع</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <input id="name" type="text" placeholder="اسم الشركة" class="p-3 border rounded-xl focus:ring-2 focus:ring-blue-400">
+            <input id="job" type="text" placeholder="المهنة المطلوبة" class="p-3 border rounded-xl focus:ring-2 focus:ring-blue-400">
+            <button onclick="addItem()" class="col-span-1 md:col-span-2 bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700 font-bold">إضافة إلى السجل</button>
         </div>
-        <div class="mt-6">
-            <h2 class="font-bold mb-2">القائمة:</h2>
-            <ul id="list" class="space-y-2"></ul>
-        </div>
+
+        <table class="w-full text-right border-collapse">
+            <thead><tr class="bg-blue-50 text-blue-900"><th class="p-3">الشركة</th><th class="p-3">المهنة</th><th class="p-3">تحكم</th></tr></thead>
+            <tbody id="list"></tbody>
+        </table>
+        
+        <button onclick="exportCSV()" class="mt-8 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">تصدير البيانات (Excel)</button>
     </div>
+
     <script>
+        let data = JSON.parse(localStorage.getItem('myProjects') || '[]');
+        
+        function render() {
+            const list = document.getElementById('list');
+            list.innerHTML = '';
+            data.forEach((item, index) => {
+                list.innerHTML += `<tr class="border-b"><td>${item.name}</td><td>${item.job}</td><td><button onclick="del(${index})" class="text-red-500">حذف</button></td></tr>`;
+            });
+            localStorage.setItem('myProjects', JSON.stringify(data));
+        }
+
         function addItem() {
             const name = document.getElementById('name').value;
             const job = document.getElementById('job').value;
-            if(!name || !job) return alert("يرجى ملء الحقول");
-            const li = document.createElement('li');
-            li.className = "bg-gray-50 p-2 border rounded";
-            li.textContent = `${name} - ${job}`;
-            document.getElementById('list').appendChild(li);
+            if(name && job) {
+                data.push({name, job});
+                render();
+            }
         }
+
+        function del(index) { data.splice(index, 1); render(); }
+
+        function exportCSV() {
+            let csv = "الشركة,المهنة\n" + data.map(i => `${i.name},${i.job}`).join("\n");
+            const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "مشاريع_مهندس_عدنان.csv";
+            link.click();
+        }
+        render();
     </script>
 </body>
 </html>
